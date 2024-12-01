@@ -142,7 +142,7 @@ def vertProc(node1, node2, node3, node4, node5, node6, node7, node8):
         dmcoutput.insert(verts, fcs)
         # dual_cells.append(vertices)
         return
-    vertProc(node1.children[7], node1.children[6], node1.children[5], node1.children[4], node1.children[3], node1.children[2], node1.children[1], node1.children[0], )
+    vertProc(node1.children[7], node2.children[6], node3.children[5], node4.children[4], node5.children[3], node6.children[2], node7.children[1], node8.children[0])
 
 class DMCOutput:
     def __init__(self) -> None:
