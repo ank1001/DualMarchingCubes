@@ -5,29 +5,66 @@ from scipy.optimize import minimize
 
 class Feature_Isolation:
 
-    def __init__(self, base_coords, side_length, field_values, isolevel) -> None:
+    def __init__(self, base_coords, side_length, field_values, isolevel, number_of_points) -> None:
         self.base_coords = base_coords
         self.side_length = side_length
+        self.number_of_points = number_of_points
         self.res = self.compute_QEF(field_values, isolevel)
         self.QEF = self.res[0]
-        self.grid_index = self.res[1]
-        self.QEF_threshold = 0 # each cell must have QEF value less than -100
+        self.cell_params = self.res[1]
+        print(f'cell params: {self.cell_params}')
+        print(f'self.qef:{self.QEF}')
 
     def compute_QEF(self, field_values, isolevel):
-        mid_point = np.array([self.base_coords[0] + self.side_length/2, self.base_coords[1] + self.side_length/2,self.base_coords[2] + self.side_length/2])
-        initial_guess = mid_point
-        bounds = [(self.base_coords[0], self.base_coords[0]+self.side_length), (self.base_coords[1], self.base_coords[1]+self.side_length), (self.base_coords[2], self.base_coords[2]+self.side_length)]
-        # print(f'bounds:{bounds}')
-        result = minimize(self.compute_E, initial_guess, args=(field_values, isolevel, mid_point), bounds = bounds)
-        return (result.fun, result.x)
+        mid_point = np.array([
+        self.base_coords[0] + self.side_length / 2,
+        self.base_coords[1] + self.side_length / 2,
+        self.base_coords[2] + self.side_length / 2
+        ])
+
+        # Initial guess for optimization
+        initial_guess = np.hstack([isolevel, mid_point])  # w = 0, (x, y, z) = midpoint
+
+        # Bounds for optimization
+        bounds = [
+        (None, None),  # No bounds for w
+        (self.base_coords[0], self.base_coords[0] + self.side_length),  # x bounds
+        (self.base_coords[1], self.base_coords[1] + self.side_length),  # y bounds
+        (self.base_coords[2], self.base_coords[2] + self.side_length)   # z bounds
+        ]
+
+        # Minimize the QEF
+        result = minimize(
+        self.compute_E,
+        initial_guess,
+        args=(field_values, isolevel, mid_point),
+        bounds=bounds
+        )
+
+        # Return the minimized QEF and the optimal parameters
+        return result.fun, result.x
 
     def compute_E(self, params, field_values, isolevel, mid_point):
-        # mid point 
-        xi, yi, zi = mid_point
-        x,y,z = params
-        gradient = compute_gradient(field_values, xi, yi, zi)
-        gr_magnitude = np.sqrt(gradient[0]**2 + gradient[1]**2 + gradient[2]**2)
-        E = ((isolevel - ( np.dot(gradient, np.array([x-xi, y-yi, z-zi])) ))**2)/(1 + gr_magnitude**2 )
+        
+
+        points = np.random.rand(self.number_of_points, 3)
+
+        w, x, y, z = params
+
+        # Compute the gradient at each point
+        gradient = np.array([compute_gradient(field_values, p[0], p[1], p[2]) for p in points])
+
+        # Compute the magnitude of each gradient vector
+        gr_magnitude = np.array([np.sqrt(p[0]**2 +  p[1]**2+ p[2]**2) for p in gradient])
+
+        # Compute the error term E for each point
+        E_arr = np.array([
+        ((w - np.dot(gradient[i], np.array([x - points[i][0], y - points[i][1], z - points[i][2]]))) ** 2) / (1 + gr_magnitude[i]**2)
+        for i in range(len(gradient))
+        ])
+
+        # Sum up all error terms
+        E = np.sum(E_arr)
         return E
     
 
