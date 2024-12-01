@@ -4,7 +4,6 @@ from ModMarchingCubes2 import mod_marching_cubes
 import mcubes
 
 
-# task1: on the first call of octreeNode octree should be created
 class OctreeNode:
 
 
@@ -137,9 +136,9 @@ def vertProc(node1, node2, node3, node4, node5, node6, node7, node8):
             node7.cell_params,
             node8.cell_params
         ])
-        print(f'cellparams:{cell_params}')
+        # print(f'cellparams:{cell_params}')
         verts, fcs = mod_marching_cubes(cell_params, isolevel, field_values)
-        print(f'verts:{verts}, fcs:{fcs}')
+        # print(f'verts:{verts}, fcs:{fcs}')
         dmcoutput.insert(verts, fcs)
         # dual_cells.append(vertices)
         return
@@ -163,50 +162,33 @@ class DMCOutput:
                 fc[2]+= self.vertices_len
                 self.triangles.append(fc)
             self.vertices_len += len(v)
-        #     if fcs is not None:
-        #         self.vertices = np.array(verts)
-        #         self.triangles =np.array(fcs) 
-        #         self.vertices_len = verts.shape[0]
-        # else:
-        #     if fcs is not None:
-        #         for vertex in verts:
-        #             self.vertices = np.concatenate((self.vertices, vertex), axis=0)
-        #         fcs += self.vertices_len
-        #         self.vertices_len += verts.shape[0]
-        #         for face in fcs:
-        #             self.triangles = np.concatenate((self.triangles, fcs), axis=0)
 
 
-
-def traverse_octree(node):
-    if node is None:
-        return
-    print(node)
-    for child in node.children:
-        traverse_octree(child)
-
-def main():
+def dual_marching_cubes(fld_values, isol):
     global field_values
+    field_values = fld_values
     global isolevel
     global dmcoutput
     dmcoutput = DMCOutput()
-    isolevel = 0.4
-    X, Y, Z = np.mgrid[:3, :3, :3]
-    u =  (X-1)**2 + (Y-1)**2 + (Z-1)**2 - 0.5**2
-    maxu = np.max(u)
-    u  = u/maxu
-    print(u)
-    field_values = u
-    n= (len(X)-1)**3
-    print(f'n:{n}')
+    isolevel = isol
+    n = field_values.shape[0]
+    n = (n-1)**3
     node = OctreeNode(np.array([0,0,0]), 1, n)
-    # print(node)
     faceProc(node)
-    # traverse_octree(node)
     vertices = np.array(dmcoutput.vertices)
     triangles = np.array(dmcoutput.triangles)
-    print(f'vertices:{vertices}, triangles:{triangles}')
-    print(f'vertics shape:{vertices.shape}, fcs shape:{triangles.shape}')
+    return vertices, triangles
+
+def main():
+    density_threshold = 0.3
+    X, Y, Z = np.mgrid[:10, :10, :10]
+    u =  (X-4)**2 + (Y-4)**2 + (Z-4)**2 - 3.8**2
+    maxu = np.max(u)
+    u = u/maxu
+    print('Running dual marching cubes ... ')
+    vertices, triangles = dual_marching_cubes(u, density_threshold)
+    # print(f'vertices:{vertices}, triangles:{triangles}')
     mcubes.export_obj(vertices, triangles, 'mydual_sphere.obj')
+    print('exported to obj file.')
 
 main()

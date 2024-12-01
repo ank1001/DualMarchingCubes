@@ -1,7 +1,8 @@
 import numpy as np
-# from OctreeNode4 import field_values
 from LookupTable2 import tri_table
 from FeatureIsolation4 import compute_f
+
+
 # Edge table to map edges to vertex pairs
 edge_table = [
     [0, 1], [1, 2], [2, 3], [3, 0],
@@ -36,11 +37,11 @@ def marching_cubes(cube_positions, cube_isovalues, isolevel):
 
     # Get the cube index
     cube_index = get_cube_index(cube_isovalues, isolevel)
-    print(f'cubeindex:{cube_index}')
+    # print(f'cubeindex:{cube_index}')
 
     # Get the corresponding triangles from the table
     edges = tri_table[cube_index]
-    print(f'edges:{edges}')
+    # print(f'edges:{edges}')
     if not edges:
         return np.array(vertices), np.array(triangles)
     
@@ -72,26 +73,3 @@ def mod_marching_cubes(cell_params, isolevel, field_values):
     return np.array(vertices), np.array(triangles)
 
 
-# scalar_field = np.random.rand(3, 3, 3)
-# isolevel = 0.5
-
-# vertices, triangles = marching_cubes(scalar_field, isolevel)
-
-# print("Vertices:", vertices)
-# print("Triangles:", triangles)
-
-# def main():
-#     cell_params = np.array([[0.69869749, 0.37584364, 0.40615453, 0.28601576],
-#        [0.60851223, 0.03163737, 0.1016379 , 0.2606629 ],
-#        [0.70948277, 0.17368685, 0.5189909 , 0.04330313],
-#        [0.7617489 , 0.11840514, 0.68552033, 0.8281011 ],
-#        [0.14304385, 0.79745545, 0.6676333 , 0.91678687],
-#        [0.60626532, 0.72849506, 0.10618249, 0.32032418],
-#        [0.79292376, 0.86369677, 0.85736879, 0.89069221],
-#        [0.83297741, 0.4932701 , 0.78915049, 0.17245434]])
-    
-#     isolevel = 0.15
-#     vertices, faces = mod_marching_cubes(cell_params, isolevel)
-#     print(vertices, faces)
-# if __name__=="__main__":
-#     main()
